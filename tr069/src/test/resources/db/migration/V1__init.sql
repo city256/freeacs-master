@@ -1,0 +1,1 @@
+../../../../main/resources/h2-schema.sql

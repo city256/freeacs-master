@@ -1,0 +1,169 @@
+version: '2.2'
+services:
+  nginx:
+    image: freeacs/nginx
+    mem_limit: 1000000000
+    restart: always
+    ports:
+      - 80:80
+    networks:
+      - mynetwork
+    links:
+      - web
+      - webservice
+      - tr069
+      - stun
+      - syslog
+      - core
+  web:
+    image: freeacs/freeacs-web
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - MONITOR_LOCATION
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - web_logs:/opt/docker/logs
+      - ./conf/web:/opt/docker/config:ro
+  monitor:
+    image: freeacs/freeacs-monitor
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MONITOR_URL_CORE
+      - MONITOR_URL_SYSLOG
+      - MONITOR_URL_TR069
+      - MONITOR_URL_WEB
+      - MONITOR_URL_WEBSERVICE
+      - MONITOR_URL_STUN
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - web_logs:/opt/docker/logs
+      - ./conf/web:/opt/docker/config:ro
+  tr069:
+    image: freeacs/freeacs-tr069
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - tr069_logs:/opt/docker/logs
+      - ./conf/tr069:/opt/docker/config:ro
+  syslog:
+    image: freeacs/freeacs-syslog
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - syslog_logs:/opt/docker/logs
+      - ./conf/syslog:/opt/docker/config:ro
+  core:
+    image: freeacs/freeacs-core
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - core_logs:/opt/docker/logs
+      - ./conf/core:/opt/docker/config:ro
+  stun:
+    image: freeacs/freeacs-stun
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - stun_logs:/opt/docker/logs
+      - ./conf/stun:/opt/docker/config:ro
+  webservice:
+    image: freeacs/freeacs-webservice
+    restart: always
+    mem_limit: 2048000000
+    networks:
+      - mynetwork
+    environment:
+      - SPRING_PROFILES_ACTIVE
+      - MAIN_DATASOURCE_JDBCURL
+      - MAIN_DATASOURCE_USERNAME
+      - MAIN_DATASOURCE_PASSWORD
+      - SYSLOG_SERVER_HOST
+      - SERVER_PORT
+      - TZ
+    volumes:
+      - webservice_logs:/opt/docker/logs
+      - ./conf/webservice:/opt/docker/config:ro
+  db:
+    image: freeacs/mysql
+    command: --max_allowed_packet=32M
+    restart: always
+    mem_limit: 1000000000
+    environment:
+      - TZ
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      mynetwork:
+        aliases:
+          - db.main
+          - db.syslog
+
+volumes:
+  mysql-data:
+  core_logs:
+  web_logs:
+  webservice_logs:
+  syslog_logs:
+  stun_logs:
+  tr069_logs:
+
+networks:
+  mynetwork:
+    driver: bridge

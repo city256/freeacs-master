@@ -1,0 +1,13 @@
+/.classpath
+/.project
+/.settings
+/bin
+/build
+/target
+.idea
+*.iml
+*.log
+/scripts/mysql-data
+/scripts/conf
+/project/target
+/project/project
